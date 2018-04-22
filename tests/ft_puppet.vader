@@ -1,48 +1,66 @@
 Include: include/setup.vader
 
-Execute (puppet):
-  let puppet_output =
-   \ 'Error: Could not parse for environment production: Syntax error at end of input (file: /foo/manifests/init.pp)'
-   \ . "\n" .
-   \ 'Error: Could not parse for environment production: A quoted string is not valid as a name here (file: /foo/manifests/init.pp, line: 9, column: 11)'
+Execute (puppet parser, syntax error: end of input):
+  new
+  file tests/fixtures/input/puppet/syntax-error-eoi.pp
+  let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppet',
+  \ 'tests/fixtures/input/puppet/syntax-error-eoi.pp')
+  CallNeomake 1, [maker]
 
-  Save &errorformat
-  let &errorformat = neomake#makers#ft#puppet#puppet().errorformat
-  lgetexpr puppet_output
+  let bufnr = bufnr('%')
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 0,
+  \ 'bufnr': bufnr,
+  \ 'col': 0,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': 'Syntax error at end of input'
+  \ }]
+  bwipe
 
-  let loclist = getloclist(0)
-  AssertEqual len(loclist), 2
-  AssertEqual loclist[0].lnum, 0
-  AssertEqual loclist[0].col, 0
-  AssertEqual loclist[0].type, 'E'
-  AssertEqual loclist[0].text, 'Syntax error at end of input'
-  AssertEqual loclist[1].lnum, 9
-  AssertEqual loclist[1].col, 11
-  AssertEqual loclist[1].type, 'E'
-  AssertEqual loclist[1].text, 'A quoted string is not valid as a name here'
+Execute (puppet parser, syntax error in specific line):
+  new
+  file tests/fixtures/input/puppet/syntax-error.pp
+  let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppet',
+  \ 'tests/fixtures/input/puppet/syntax-error.pp')
+  CallNeomake 1, [maker]
 
-  bwipe /foo/manifests/init.pp
+  let bufnr = bufnr('%')
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 3,
+  \ 'bufnr': bufnr,
+  \ 'col': 3,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': "Syntax error at 'file'"
+  \ }]
+  bwipe
 
-Execute (puppet-lint):
-  let puppet_lint_output =
-    \ '"manifests/foo.pp:12:14:warning:[double_quoted_strings] double quoted string containing no variables"'
-    \ . "\n" .
-    \ '"manifests/foo.pp:7:9:error:[autoloader_layout] foo::bar not in autoload module layout"'
+" Execute (puppet linter):
+"   new
+"   file tests/fixtures/input/puppet-lint/err_and_warn.pp
+"   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppetlint',
+"   \ 'tests/fixtures/input/puppet-lint/err_and_warn.pp')
+"   CallNeomake 1, [maker]
+"   AssertEqual '', maker
 
-  Save &errorformat
-  let &errorformat = neomake#makers#ft#puppet#puppetlint().errorformat
-  lgetexpr puppet_lint_output
-
-  let loclist = getloclist(0)
-  AssertEqual len(loclist), 2
-  AssertEqual loclist[0].lnum, 12
-  AssertEqual loclist[0].col, 14
-  AssertEqual loclist[0].type, 'w'
-  AssertEqual loclist[0].text, '[double_quoted_strings] double quoted string containing no variables'
-  AssertEqual loclist[1].lnum, 7
-  AssertEqual loclist[1].col, 9
-  AssertEqual loclist[1].type, 'e'
-  AssertEqual loclist[1].text, '[autoloader_layout] foo::bar not in autoload module layout'
-
-  bwipe manifests/foo.pp
+"   let bufnr = bufnr('%')
+"   AssertEqual getloclist(0), [{
+"   \ 'lnum': 4,
+"   \ 'bufnr': bufnr,
+"   \ 'col': 10,
+"   \ 'valid': 1,
+"   \ 'vcol': 0,
+"   \ 'nr': -1,
+"   \ 'type': 'W',
+"   \ 'pattern': '',
+"   \ 'text': '[arrow_alignment] indentation of => is not properly aligned (expected in column 12, but found it in column 10)'
+"   \ }]
+"   bwipe
 
