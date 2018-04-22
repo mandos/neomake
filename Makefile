@@ -338,20 +338,24 @@ clean:
 
 # Fixtures {{{
 define func-generate-fixture
-	@baseout=tests/fixtures/output/$*; \
-	$1 $< >$$baseout.stdout 2>$$baseout.stderr; \
-	ret=$$?; \
-	if [ "$$ret" != $2 ]; then \
-	  echo "Unexpected exitcode ($$ret, expected $2) with: '$1' for $<, check $$baseout.*." >&2; exit 1; \
+tests/fixtures/output/$1:
+	mkdir -p $$@
+tests/fixtures/output/$1/%.stderr tests/fixtures/output/$1/%.stdout tests/fixtures/output/$1/%.exitcode: tests/fixtures/input/$1/% | tests/fixtures/output/$1
+	@baseout=tests/fixtures/output/$1/$$*; \
+	echo "Generating $$$$baseout"; \
+	$1 $2 $$< >$$$$baseout.stdout 2>$$$$baseout.stderr; \
+	ret=$$$$?; \
+	printf $$$$ret > $$$$baseout.exitcode; \
+	if [ "$$$$ret" != $3 ]; then \
+	  echo "Unexpected exitcode ($$$$ret, expected $3) with: '$1 $2 $$<', check $$$$baseout.*." >&2; exit 1; \
 	fi; \
-	if ! [ -f $$baseout.stdout ]; then \
-	  echo 'Missing output: $$baseout.stdout.' >&2; exit 1; \
-	fi; \
-	printf $$ret > $$baseout.exitcode
+	if ! [ -f $$$$baseout.stdout ]; then \
+	  echo "Missing output: $$$$baseout.stdout." >&2; exit 1; \
+	fi
 endef
 
-tests/fixtures/output/%.stderr tests/fixtures/output/%.stdout tests/fixtures/output/%.exitcode: tests/fixtures/input/%
-	$(call func-generate-fixture,xmllint --xinclude --postvalid --noout,3)
+$(eval $(call func-generate-fixture,xmllint,--xinclude --postvalid --noout,3))
+$(eval $(call func-generate-fixture,puppet,parser validate --color=false,1))
 
 _FIXTURES_INPUT:=$(wildcard tests/fixtures/input/*/*)
 _FIXTURES_OUTPUT:=$(patsubst tests/fixtures/input/%,tests/fixtures/output/%,$(addsuffix .stdout,$(_FIXTURES_INPUT)) $(addsuffix .stderr,$(_FIXTURES_INPUT)))
@@ -360,7 +364,7 @@ fixtures: $(_FIXTURES_OUTPUT)
 
 fixtures-rebuild:
 	$(RM) tests/fixtures/output/*/*.stdout tests/fixtures/output/*/*.stderr
-	$(MAKE) fixtures
+	$(MAKE) --keep-going fixtures
 .PHONY: fixtures-rebuild
 # }}}
 
