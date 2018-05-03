@@ -417,11 +417,18 @@ function! NeomakeTestsFixtureMaker(func, fname) abort
         \ fnameescape(stdout), fnameescape(stderr), exitcode)]
   let maker.name = printf('%s-fixture', substitute(a:func, '^.*#', '', ''))
 
-  if !isdirectory(s:fixture_root)
-    call mkdir(s:fixture_root, 'p')
+  " Massage current buffer.
+  if get(b:, 'neomake_tests_massage_buffer', 1)
+    " Write the input file to the temporary root.
+    let test_fname = s:fixture_root . '/' . a:fname
+    let test_fname_dir = fnamemodify(test_fname, ':h')
+    if !isdirectory(test_fname_dir)
+      call mkdir(test_fname_dir, 'p')
+    endif
+    call writefile(readfile(a:fname), test_fname, 'b')
+    exe 'file ' . s:fixture_root . '/' . a:fname
+    exe 'lcd '.s:fixture_root
   endif
-  exe 'file ' . s:fixture_root . '/' . a:fname
-  exe 'lcd '.s:fixture_root
 
   return maker
 endfunction
