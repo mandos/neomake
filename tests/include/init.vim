@@ -402,8 +402,10 @@ function! NeomakeTestsGetMakerWithOutput(func, lines_or_file) abort
   return maker
 endfunction
 
+let s:fixture_root = '/tmp/neomake-tests'
+
 function! NeomakeTestsFixtureMaker(func, fname) abort
-  let output_base = substitute(a:fname, '^tests/fixtures/input/', 'tests/fixtures/output/', '')
+  let output_base = getcwd().'/'.substitute(a:fname, '^tests/fixtures/input/', 'tests/fixtures/output/', '')
   let stdout = printf('%s.stdout', output_base)
   let stderr = printf('%s.stderr', output_base)
   let exitcode = readfile(printf('%s.exitcode', output_base))[0]
@@ -414,6 +416,13 @@ function! NeomakeTestsFixtureMaker(func, fname) abort
         \ 'cat %s; cat %s >&2; exit %d',
         \ fnameescape(stdout), fnameescape(stderr), exitcode)]
   let maker.name = printf('%s-fixture', substitute(a:func, '^.*#', '', ''))
+
+  if !isdirectory(s:fixture_root)
+    call mkdir(s:fixture_root, 'p')
+  endif
+  exe 'file ' . s:fixture_root . '/' . a:fname
+  exe 'lcd '.s:fixture_root
+
   return maker
 endfunction
 

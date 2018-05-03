@@ -337,6 +337,12 @@ clean:
 .PHONY: clean
 
 # Fixtures {{{
+
+# A function to define targets/rules for fixture generation.
+# Args:
+# 1: the tool (bin) and input/output dir.
+# 2: arguments for the tool
+# NOTE: uses "sed -i.bak" for MacOS's default sed.
 define func-generate-fixture
 tests/fixtures/output/$1:
 	mkdir -p $$@
@@ -346,16 +352,17 @@ tests/fixtures/output/$1/%.stderr tests/fixtures/output/$1/%.stdout tests/fixtur
 	$1 $2 $$< >$$$$baseout.stdout 2>$$$$baseout.stderr; \
 	ret=$$$$?; \
 	printf $$$$ret > $$$$baseout.exitcode; \
-	if [ "$$$$ret" != $3 ]; then \
-	  echo "Unexpected exitcode ($$$$ret, expected $3) with: '$1 $2 $$<', check $$$$baseout.*." >&2; exit 1; \
-	fi; \
 	if ! [ -f $$$$baseout.stdout ]; then \
 	  echo "Missing output: $$$$baseout.stdout." >&2; exit 1; \
-	fi
+	fi; \
+	sed -i.bak -e "s~$(CURDIR)/~/tmp/neomake-tests/~g" \
+	  $$$$baseout.stdout $$$$baseout.stderr; \
+	$(RM) $$$$baseout.stdout.bak $$$$baseout.stderr.bak
 endef
 
-$(eval $(call func-generate-fixture,xmllint,--xinclude --postvalid --noout,3))
-$(eval $(call func-generate-fixture,puppet,parser validate --color=false,1))
+# Call and eval the above function to generate rules for different tools.
+$(eval $(call func-generate-fixture,xmllint,--xinclude --postvalid --noout))
+$(eval $(call func-generate-fixture,puppet,parser validate --color=false))
 
 _FIXTURES_INPUT:=$(wildcard tests/fixtures/input/*/*)
 _FIXTURES_OUTPUT:=$(patsubst tests/fixtures/input/%,tests/fixtures/output/%,$(addsuffix .stdout,$(_FIXTURES_INPUT)) $(addsuffix .stderr,$(_FIXTURES_INPUT)))
