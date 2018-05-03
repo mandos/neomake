@@ -2,7 +2,6 @@ Include: include/setup.vader
 
 Execute (puppet parser, syntax error: end of input):
   new
-  file tests/fixtures/input/puppet/syntax-error-eoi.pp
   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppet',
   \ 'tests/fixtures/input/puppet/syntax-error-eoi.pp')
   CallNeomake 1, [maker]
@@ -23,7 +22,6 @@ Execute (puppet parser, syntax error: end of input):
 
 Execute (puppet parser, syntax error in specific line):
   new
-  file tests/fixtures/input/puppet/syntax-error.pp
   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppet',
   \ 'tests/fixtures/input/puppet/syntax-error.pp')
   CallNeomake 1, [maker]
@@ -44,7 +42,6 @@ Execute (puppet parser, syntax error in specific line):
 
 " Execute (puppet linter):
 "   new
-"   file tests/fixtures/input/puppet-lint/err_and_warn.pp
 "   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppetlint',
 "   \ 'tests/fixtures/input/puppet-lint/err_and_warn.pp')
 "   CallNeomake 1, [maker]
