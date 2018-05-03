@@ -4,3 +4,4 @@ class foo {
     mode => '0666'
   }
 }
+

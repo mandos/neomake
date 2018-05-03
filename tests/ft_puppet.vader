@@ -40,24 +40,25 @@ Execute (puppet parser, syntax error in specific line):
   \ }]
   bwipe
 
-" Execute (puppet linter):
-"   new
-"   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppetlint',
-"   \ 'tests/fixtures/input/puppet-lint/err_and_warn.pp')
-"   CallNeomake 1, [maker]
-"   AssertEqual '', maker
+Execute (puppet linter):
+  new
+  let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#puppet#puppetlint',
+  \ 'tests/fixtures/input/puppet-lint/err_and_warn.pp')
+  " AssertEqual '', maker
+  CallNeomake 1, [maker]
+  Log neomake#utils#redir('ls!')
 
-"   let bufnr = bufnr('%')
-"   AssertEqual getloclist(0), [{
-"   \ 'lnum': 4,
-"   \ 'bufnr': bufnr,
-"   \ 'col': 10,
-"   \ 'valid': 1,
-"   \ 'vcol': 0,
-"   \ 'nr': -1,
-"   \ 'type': 'W',
-"   \ 'pattern': '',
-"   \ 'text': '[arrow_alignment] indentation of => is not properly aligned (expected in column 12, but found it in column 10)'
-"   \ }]
-"   bwipe
+  let bufnr = bufnr('%')
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 4,
+  \ 'bufnr': bufnr,
+  \ 'col': 10,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'W',
+  \ 'pattern': '',
+  \ 'text': '[arrow_alignment] indentation of => is not properly aligned (expected in column 12, but found it in column 10)'
+  \ }]
+  bwipe
 
